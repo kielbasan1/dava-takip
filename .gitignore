@@ -1,0 +1,16 @@
+node_modules/
+package-lock.json
+*.log
+.DS_Store
+
+# Termux ortam klasörleri (tesadüfi alınmamalı)
+.cache/
+.config/
+.local/
+.npm/
+.ssh/
+
+# Kişisel / asla sürüme girmemeli
+.opencode/
+.bash_history
+.gitconfig

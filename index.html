@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Dava Takip</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/icon-192.png" sizes="192x192">
+<style>
+:root{
+  --bg:#0f172a; --bg2:#1e293b; --bg3:#334155;
+  --fg:#f1f5f9; --mut:#94a3b8;
+  --ac:#2dd4bf; --ok:#34d399; --warn:#fbbf24; --crit:#f87171; --od:#ef4444;
+  --card:#1e293b; --line:#334155;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--fg);
+  font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  padding:max(8px, env(safe-area-inset-top)) 12px 40px; max-width:760px; margin:0 auto;
+}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{font-size:30px}
+h1{margin:0;font-size:20px}
+.tag{margin:0;color:var(--mut);font-size:12px}
+.btn{border:0;border-radius:10px;padding:9px 14px;font-size:14px;cursor:pointer;background:var(--bg3);color:var(--fg)}
+.btn.primary{background:var(--ac);color:#062825;font-weight:700}
+.btn.ghost{background:transparent;border:1px solid var(--line)}
+.btn.danger-ghost{background:transparent;border:1px solid var(--crit);color:var(--crit)}
+.btn.mini{padding:4px 9px;font-size:12px;background:var(--bg3)}
+.btn.hidden{display:none}
+.tabs{display:flex;gap:6px;margin-bottom:8px;background:var(--bg2);padding:6px;border-radius:12px}
+.tab{flex:1;border:0;background:transparent;color:var(--mut);padding:9px 0;border-radius:8px;cursor:pointer;font-size:14px}
+.tab.active{background:var(--ac);color:#062825;font-weight:700}
+.toolbar{display:flex;gap:8px;margin-bottom:14px}
+#search{flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--fg);border-radius:10px;padding:10px;font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--bg3);border-radius:12px;padding:12px;margin-bottom:10px;position:relative;transition:.2s}
+.card.overdue{border-left-color:var(--od);animation:blink 1s step-end infinite}
+.card.critical{border-left-color:var(--crit)}
+.card.warning{border-left-color:var(--warn)}
+.card.notice{border-left-color:var(--ac)}
+.card.ok{border-left-color:var(--ok)}
+.card.archived{opacity:.55}
+.card h3{margin:6px 0 4px;font-size:16px}
+.card-meta{color:var(--mut);font-size:13px;margin-bottom:2px}
+.card-head{display:flex;align-items:center;gap:6px}
+.tlabel{font-size:10px;letter-spacing:1px;color:var(--mut);background:var(--bg3);padding:2px 7px;border-radius:20px}
+.badge{font-size:11px;color:var(--mut);border:1px solid var(--line);padding:1px 8px;border-radius:20px}
+.badge.done{color:var(--ok);border-color:var(--ok)}
+.badge.cse{color:var(--warn);border-color:var(--warn)}
+.icon-btn{background:transparent;border:0;color:var(--mut);font-size:15px;cursor:pointer;margin-left:auto;padding:2px 5px}
+.icon-btn.danger{color:var(--crit)}
+.card-head .icon-btn{margin-left:2px}
+.evlist{margin:6px 0 0;padding-left:16px;color:var(--mut);font-size:13px}
+.evlist li.overdue{color:var(--od)}
+.evlist li.critical{color:var(--crit)}
+.evlist li.warning{color:var(--warn)}
+.evlist li.notice{color:var(--ac)}
+.evlist li.ok{color:var(--ok)}
+.notes{color:var(--mut);font-size:13px;font-style:italic;margin-top:6px}
+.cdline{margin-top:10px;text-align:right}
+.cd{font-size:13px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--bg3)}
+.cd.overdue{background:var(--od);color:#fff;animation:blink 1s step-end infinite}
+.cd.critical{background:var(--crit);color:#fff}
+.cd.warning{background:var(--warn);color:#3a2e00}
+.cd.notice{background:var(--ac);color:#062825}
+.cd.ok{background:var(--bg3);color:var(--fg)}
+@keyframes blink{50%{opacity:.35}}
+.empty{color:var(--mut);text-align:center;padding:40px 10px}
+.empty.small{padding:16px}
+.settings{border-top:1px solid var(--line);margin-top:22px;padding-top:8px}
+.settings h2{font-size:15px;margin:14px 0 8px;color:var(--mut)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:7px 0;color:var(--fg)}
+.row .btns{justify-content:flex-start}
+.tg-section{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:14px;background:var(--bg2)}
+.tg-section a{color:var(--ac)}
+.tg-status{font-size:12px;color:var(--mut)}
+.tg-status.ok{color:var(--ok)}
+.tg-status.err{color:var(--crit)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;background:var(--bg2);border:1px solid var(--line);border-radius:20px;padding:5px 11px;cursor:pointer;user-select:none;display:flex;align-items:center;gap:5px}
+.chip input{accent-color:var(--ac)}
+.chip.on{border-color:var(--ac)}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+label{display:block;margin:8px 0;color:var(--mut);font-size:13px}
+input,select,textarea{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--fg);border-radius:9px;padding:10px;font-size:14px;margin-top:4px;font-family:inherit}
+input[type=checkbox]{width:auto;accent-color:var(--ac)}
+.notes{white-space:pre-wrap}
+.modal{position:fixed;inset:0;background:rgba(2,6,23,.7);display:flex;align-items:center;justify-content:center;padding:14px;z-index:50}
+.modal.hidden{display:none}
+.modal-box{background:var(--bg2);border:1px solid var(--line);border-radius:14px;max-width:560px;width:100%;max-height:88vh;overflow:auto;padding:14px}
+.mhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.mhead h2{margin:0;font-size:18px}
+.mfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;position:sticky;bottom:0;background:var(--bg2);padding-top:8px}
+.sub-section{margin:12px 0;border-top:1px dashed var(--line);padding-top:8px}
+.sub-head{display:flex;align-items:center;justify-content:space-between;margin:6px 0}
+.sub-head h3{margin:0;font-size:13px;color:var(--mut)}
+.subrow{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;margin:5px 0;font-size:13px}
+.subrow span:first-child{flex:1}
+.subrow span:nth-child(2){color:var(--mut)}
+.subrow .icon-btn{margin-left:0}
+.warn-wrap{background:rgba(248,113,113,.12);border:1px solid var(--crit);border-radius:10px;padding:9px 12px;color:var(--crit);font-size:13px;margin:8px 0}
+.toast-wrap{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;width:min(92%,520px);z-index:60;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--bg3);border-left:4px solid var(--ac);border-radius:10px;padding:10px 12px;box-shadow:0 6px 20px rgba(0,0,0,.4);font-size:13px;transition:.3s}
+.toast.warn{border-left-color:var(--warn)}
+.toast.ok{border-left-color:var(--ok)}
+.toast span{display:block;color:var(--mut);margin-top:2px}
+.toast.out{opacity:0;transform:translateY(8px)}
+.log{display:flex;flex-direction:column;gap:6px}
+.log-item{background:var(--bg2);border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:13px}
+.log-item .lt{color:var(--mut);font-size:11px;display:block}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <span class="logo">⚖</span>
+    <div>
+      <h1>Dava Takip</h1>
+      <p class="tag">Görev · Dava · Dosya</p>
+    </div>
+  </div>
+  <div class="hdr-actions">
+    <button id="installBtn" class="btn ghost hidden">Kur</button>
+    <button id="notifBtn" class="btn ghost">Bildirimler: Aç</button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button data-tab="all" class="tab active">Panel</button>
+  <button data-tab="task" class="tab">Görevler</button>
+  <button data-tab="case" class="tab">Davalar</button>
+  <button data-tab="file" class="tab">Dosyalar</button>
+</nav>
+
+<div class="toolbar">
+  <input id="search" type="search" placeholder="Ara (ad, dosya no, mahkeme...)">
+  <button id="addBtn" class="btn primary">+ Ekle</button>
+</div>
+
+<main id="list"></main>
+
+<div class="settings">
+  <h2>Ayarlar</h2>
+  <label class="row"><span>Bildirimler kapalıyken de kontrol et (güç tasarrufu)</span><span class="dn"></span></label>
+  <label class="row"><span>Sesli uyarı (zil)</span><input type="checkbox" id="setBeep"></label>
+  <label class="row"><span>Sesli okuma (TTS)</span><input type="checkbox" id="setTts"></label>
+  <div class="tg-section">
+    <label class="row"><span>Telegram botuna da bildir</span><input type="checkbox" id="setTg"></label>
+    <label>Bot token (<a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a>'dan alınır)<input id="tgToken" type="password" placeholder="123456789:AA..."></label>
+    <label>Chat ID veya kullanıcı adı (@kullanici)<input id="tgChat" type="text" placeholder="123456789 veya @ad"></label>
+    <div class="row btns">
+      <button id="tgTest" class="btn ghost">Telegram test mesajı gönder</button>
+      <span id="tgStatus" class="tg-status"></span>
+    </div>
+  </div>
+  <div class="row"><span>Varsayılan hatırlatma zamanları</span>
+    <div id="setNotifTimes" class="chips"></div>
+  </div>
+  <div class="row btns">
+    <button id="backupBtn" class="btn ghost">Yedekle (.json)</button>
+    <button id="restoreBtn" class="btn ghost">Geri yükle</button>
+    <input type="file" id="restoreFile" accept="application/json" hidden>
+    <button id="sampleBtn" class="btn ghost">Örnek veri yükle</button>
+    <button id="clearBtn" class="btn danger-ghost">Tümünü sil</button>
+  </div>
+  <div id="logPanel">
+    <h2>Bildirim geçmişi</h2>
+    <div id="logList" class="log"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast-wrap"></div>
+<div id="modal" class="modal hidden">
+  <div class="modal-box" id="modalBox"></div>
+</div>
+
+<script>
+'use strict';
+const DB_KEY = 'dava_takip_db_v1';
+const FIRED_KEY = 'dava_takip_fired_v1';
+
+const NOTIF_OPTS = [
+  { m: 0, label: 'Tam zamanında' },
+  { m: 5, label: '5 dk önce' },
+  { m: 10, label: '10 dk önce' },
+  { m: 30, label: '30 dk önce' },
+  { m: 60, label: '1 saat önce' },
+  { m: 1440, label: '1 gün önce' },
+  { m: 2880, label: '2 gün önce' },
+];
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+function defSettings() {
+  return { notifyEnabled: true, tts: false, beep: true, notifyTimes: [0, 10, 60, 1440], tg: { enabled: false, token: '', chat: '' } };
+}
+function loadDB() {
+  try {
+    const raw = localStorage.getItem(DB_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      d.settings = Object.assign(defSettings(), d.settings || {});
+      d.settings.tg = Object.assign({ enabled: false, token: '', chat: '' }, d.settings.tg || {});
+      return d;
+    }
+  } catch (e) {}
+  return { tasks: [], cases: [], files: [], settings: defSettings() };
+}
+let db = loadDB();
+function save() {
+  localStorage.setItem(DB_KEY, JSON.stringify(db));
+}
+function loadFired() {
+  try { return JSON.parse(localStorage.getItem(FIRED_KEY)) || {}; } catch (e) { return {}; }
+}
+function saveFired(f) {
+  const keys = Object.keys(f);
+  if (keys.length > 300) {
+    keys.sort((a, b) => f[a] - f[b]);
+    for (let i = 0; i < keys.length - 250; i++) delete f[keys[i]];
+  }
+  localStorage.setItem(FIRED_KEY, JSON.stringify(f));
+}
+function items() {
+  return [
+    ...db.tasks.map((i) => ({ item: i, type: 'task' })),
+    ...db.cases.map((i) => ({ item: i, type: 'case' })),
+    ...db.files.map((i) => ({ item: i, type: 'file' })),
+  ];
+}
+function typeLabel(t) {
+  return t === 'task' ? 'GÖREV' : t === 'case' ? 'DAVA' : 'DOSYA';
+}
+function fmtDT(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  const p = (n) => String(n).padStart(2, '0');
+  return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function countdown(epoch) {
+  const ms = epoch - Date.now();
+  if (ms <= 0) return 'SÜRESİ GEÇTİ';
+  const m = Math.floor(ms / 60000);
+  if (m < 60) return `${m} dk kaldı`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} sa ${m % 60} dk kaldı`;
+  const days = Math.floor(h / 24);
+  return `${days} gün ${h % 24} sa kaldı`;
+}
+function urgency(epoch) {
+  const ms = epoch - Date.now();
+  if (ms < 0) return 'overdue';
+  if (ms < 3600e3) return 'critical';
+  if (ms < 86400e3) return 'warning';
+  if (ms < 2 * 86400e3) return 'notice';
+  return 'ok';
+}
+function eventsFor(type, item) {
+  const ev = [];
+  const birth = (label, iso) => {
+    const epoch = new Date(iso).getTime();
+    if (!isNaN(epoch)) ev.push({ label, epoch, iso });
+  };
+  if (type === 'task' || type === 'file') birth('Son tarih', item.due);
+  if (type === 'case') {
+    (item.hearings || []).forEach((h) => birth('Duruşma · ' + h.label, h.date));
+    (item.deadlines || []).forEach((d) => birth('Süre · ' + d.label, d.due));
+  }
+  ev.sort((a, b) => a.epoch - b.epoch);
+  return ev;
+}
+function nextEvent(type, item) {
+  const ev = eventsFor(type, item);
+  return ev.length ? ev[0] : null;
+}
+function itemName(type, item) {
+  if (type === 'case') return item.caseName || item.caseNo || 'Adsız dava';
+  return item.name || item.fileName || 'Adsız';
+}
+function isDone(item) {
+  return item.state === 'tamamlandı' || item.state === 'sonuçlandı';
+}
+function notifyTimesFor(item) {
+  return (item.notifyTimes && item.notifyTimes.length ? item.notifyTimes : db.settings.notifyTimes).slice();
+}
+
+/* ---------- Reminders ---------- */
+function reminderList() {
+  const now = Date.now();
+  const out = [];
+  for (const { item, type } of items()) {
+    if (isDone(item)) continue;
+    for (const ev of eventsFor(type, item)) {
+      for (const m of notifyTimesFor(item)) {
+        const at = ev.epoch - m * 60000;
+        if (at <= now) out.push({ id: item.id, type, label: ev.label, item, epoch: ev.epoch, at });
+      }
+    }
+  }
+  return out.sort((a, b) => a.at - b.at);
+}
+function fire(r) {
+  const body = itemName(r.type, r.item) + ' • ' + r.label;
+  toast(r.label, body, 'warn');
+  addLog(r.label, body);
+  if (db.settings.notifyEnabled && 'Notification' in window && Notification.permission === 'granted') {
+    const payload = { title: r.label, body, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', tag: uid(), renotify: true, requireInteraction: true, data: { id: r.id } };
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.ready.then((reg) => reg.showNotification(payload.title, payload)).catch(() => {});
+    } else {
+      try { new Notification(payload.title, payload); } catch (e) {}
+    }
+  }
+  if (db.settings.beep) { try { const c = new AudioContext(); const o = c.createOscillator(); const g = c.createGain(); o.frequency.value = 880; g.gain.value = 0.05; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + 0.35); } catch (e) {} }
+  if (db.settings.tts && 'speechSynthesis' in window) {
+    try {
+      const u = new SpeechSynthesisUtterance(r.label + '. ' + body);
+      u.lang = 'tr-TR';
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+  tgSend('🔔 ' + r.label + '\n' + body, { silent: true });
+}
+function tgSend(text, opts) {
+  const tg = db.settings.tg || { enabled: false, token: '', chat: '' };
+  if (!tg.enabled || !tg.token || !tg.chat) return Promise.resolve({ sent: false, reason: 'yapılandırılmamış' });
+  const silence = opts && opts.silent;
+  const payload = {
+    chat_id: tg.chat,
+    text: text,
+    disable_notification: !!silence,
+    disable_web_page_preview: true,
+  };
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 12000);
+  return fetch('https://api.telegram.org/bot' + tg.token + '/sendMessage', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    signal: ctrl.signal,
+  })
+    .then(async (r) => {
+      clearTimeout(t);
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.ok) return { sent: false, reason: j.description || ('HTTP ' + r.status) };
+      return { sent: true };
+    })
+    .catch((e) => ({ sent: false, reason: e && e.name === 'AbortError' ? 'zaman aşımı (ağ hatası?)' : 'ağ hatası' }));
+}
+function checkReminders() {
+  if (!db.settings.notifyEnabled) return;
+  const fired = loadFired();
+  for (const r of reminderList()) {
+    const key = r.id + '|' + r.label + '|' + r.at;
+    if (fired[key]) continue;
+    fired[key] = Date.now();
+    fire(r);
+  }
+  saveFired(fired);
+  renderLog();
+}
+
+/* ---------- Rendering ---------- */
+const $list = document.getElementById('list');
+const stateBadge = (item) => {
+  const st = item.state || 'aktif';
+  const cls = st === 'tamamlandı' || st === 'sonuçlandı' ? 'done' : st === 'derdest' ? 'cse' : '';
+  return `<span class="badge ${cls}">${st}</span>`;
+};
+function cardHTML(type, item) {
+  const ev = eventsFor(type, item);
+  const nxt = ev[0];
+  const evIso = nxt ? nxt.epoch : null;
+  const urg = evIso !== null ? urgency(evIso) : 'ok';
+  const cd = evIso !== null ? `<span class="cd ${urg}">${countdown(evIso)}</span>` : '<span class="cd ok">tarih yok</span>';
+  const sub = eventsFor(type, item).slice(0, 3).map((e) => `<li class="${urgency(e.epoch)}">${e.label} → <b>${fmtDT(e.iso)}</b></li>`).join('');
+  let ext = '';
+  if (type === 'case') ext = `<div class="card-meta">Mahkeme: <b>${esc(item.court || '—')}</b> · Dosya: <b>${esc(item.caseNo || '—')}</b> · Taraf: <b>${esc(item.party || '—')}</b></div>`;
+  if (type === 'file') ext = `<div class="card-meta">Yol: <b>${esc(item.filePath || '—')}</b> · Tür: <b>${esc(item.fileType || '—')}</b></div>`;
+  if (type === 'task') ext = `<div class="card-meta">Etiket: <b>${esc(item.label || '—')}</b></div>`;
+  const dnotes = item.notes ? `<div class="notes">${esc(item.notes)}</div>` : '';
+  return `<article class="card ${urg} ${isDone(item) ? 'archived' : ''}" data-id="${item.id}">
+    <div class="card-head">
+      <span class="tlabel">${typeLabel(type)}</span>
+      ${stateBadge(item)}
+      <button class="icon-btn" data-act="edit" title="Düzenle">✎</button>
+      <button class="icon-btn danger" data-act="done" title="${isDone(item) ? 'Yeniden aç' : 'Tamamla'}">${isDone(item) ? '↺' : '✓'}</button>
+      <button class="icon-btn danger" data-act="del" title="Sil">✕</button>
+    </div>
+    <h3>${esc(itemName(type, item))}</h3>
+    ${ext}
+    <ul class="evlist">${sub || '<li>Aktif tarih yok</li>'}</ul>
+    ${dnotes}
+    <div class="cdline">${cd}</div>
+  </article>`;
+}
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
+function render(tab) {
+  const q = (document.getElementById('search').value || '').toLowerCase().trim();
+  let all = items();
+  if (tab !== 'all') all = all.filter((x) => x.type === tab);
+  if (q) {
+    all = all.filter(({ item, type }) =>
+      [itemName(type, item), item.caseNo, item.court, item.label, item.fileName, item.filePath, item.notes]
+        .filter(Boolean).some((s) => String(s).toLowerCase().includes(q))
+    );
+  }
+  all.sort((a, b) => {
+    const ae = nextEvent(a.type, a.item), be = nextEvent(b.type, b.item);
+    return (ae ? ae.epoch : Infinity) - (be ? be.epoch : Infinity);
+  });
+  $list.innerHTML = all.length ? all.map((x) => cardHTML(x.type, x.item)).join('') :
+    `<div class="empty">Kayıt yok. "+ Ekle" ile başla.</div>`;
+  document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab));
+  currentTab = tab;
+}
+let currentTab = 'all';
+
+/* ---------- Modal / Forms ---------- */
+const NOTIF_CHIPS = (sel) => NOTIF_OPTS.map((o) => `<label class="chip"><input type="checkbox" value="${o.m}" ${(sel || []).includes(o.m) ? 'checked' : ''}>${o.label}</label>`).join('');
+function modalHTML(title, inner, saveLabel) {
+  return `<div class="mhead"><h2>${title}</h2><button class="icon-btn danger" data-close>✕</button></div>
+  <div class="mbody">${inner}</div>
+  <div class="mfoot">
+    <button class="btn" data-close>Vazgeç</button>
+    <button class="btn primary" id="saveBtn">${saveLabel || 'Kaydet'}</button>
+  </div>`;
+}
+function baseFields(edit) {
+  return `<h3>Hatırlatma zamanları</h3><div class="chips">${NOTIF_CHIPS(edit.notifyTimes)}</div>`;
+}
+function openModal(html) {
+  document.getElementById('modalBox').innerHTML = html;
+  document.getElementById('modal').classList.remove('hidden');
+  document.getElementById('modal').querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', closeModal));
+}
+function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+function setChips(el, field, edit) {
+  el.addEventListener('change', () => {
+    edit[field] = [...el.querySelectorAll('input:checked')].map((c) => +c.value);
+  });
+}
+function openTask(item, isNew) {
+  const edit = item || { id: uid(), type: 'task', name: '', label: '', due: '', state: 'açık', notes: '', notifyTimes: [] };
+  const html = modalHTML(isNew ? 'Yeni Görev' : 'Görev Düzenle', `
+    <label>Görev adı *<input id="f1" type="text" value="${esc(edit.name)}" required></label>
+    <label>Uygulama / Etiket<input id="f2" type="text" value="${esc(edit.label)}"></label>
+    <label>Son tarih *<input id="f3" type="datetime-local" value="${esc(edit.due)}" required></label>
+    <label>Durum<select id="f4">${['açık','devam','tamamlandı'].map((s) => `<option ${edit.state === s ? 'selected' : ''}>${s}</option>`).join('')}</select></label>
+    <label>Not<textarea id="f5" rows="2">${esc(edit.notes)}</textarea></label>
+    ${baseFields(edit)}`, 'Kaydet');
+  openModal(html);
+  setChips(document.querySelector('#modalBox .chips'), 'notifyTimes', edit);
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    const name = document.getElementById('f1').value.trim();
+    if (!name) return toast('Uyarı', 'Görev adı zorunlu', 'warn');
+    edit.name = name; edit.label = document.getElementById('f2').value.trim();
+    edit.due = document.getElementById('f3').value; edit.state = document.getElementById('f4').value;
+    edit.notes = document.getElementById('f5').value.trim();
+    if (isNew) { db.tasks.push(edit); } else { const i = db.tasks.findIndex((x) => x.id === edit.id); if (i >= 0) db.tasks[i] = edit; }
+    save(); closeModal(); render(currentTab);
+  });
+}
+const CASE_TYPES = ['Hukuk', 'Ceza', 'İcra', 'İdari', 'Temyiz', 'Aile', 'Ticaret', 'Diğer'];
+function hearingRow(h) {
+  return `<div class="subrow"><span>Duruşma · ${esc(h.label)}</span><span>${fmtDT(h.date)}</span>
+    <button class="icon-btn danger" data-hdel="${h.id}">✕</button></div>`;
+}
+function deadRow(d) {
+  return `<div class="subrow"><span>Süre · ${esc(d.label)}</span><span>${fmtDT(d.due)}</span>
+    <button class="icon-btn danger" data-ddel="${d.id}">✕</button></div>`;
+}
+function openCase(item, isNew) {
+  const edit = item || JSON.parse(JSON.stringify({ id: uid(), type: 'case', caseNo: '', caseName: '', court: '', caseType: 'Hukuk', party: '', state: 'derdest', notes: '', hearings: [], deadlines: [], notifyTimes: [] }));
+  const wrap = (s) => modalHTML(isNew ? 'Yeni Dava' : 'Dava Düzenle', s, 'Kaydet');
+  const renderCase = () => {
+    openModal(wrap(`
+      <label>Dava adı *<input id="f1" type="text" value="${esc(edit.caseName)}" required></label>
+      <label>Dosya No<input id="f2" type="text" value="${esc(edit.caseNo)}"></label>
+      <label>Mahkeme<input id="f3" type="text" value="${esc(edit.court)}"></label>
+      <div class="r2"><label>Dava türü<select id="f4">${CASE_TYPES.map((s) => `<option ${edit.caseType === s ? 'selected' : ''}>${s}</option>`).join('')}</select></label>
+      <label>Durum<select id="f5">${['derdest','karar beklemede','karar verildi','temyiz','sonuçlandı'].map((s) => `<option ${edit.state === s ? 'selected' : ''}>${s}</option>`).join('')}</select></label></div>
+      <label>Taraf (davacı / davalı)<input id="f6" type="text" value="${esc(edit.party)}"></label>
+      <div class="sub-section">
+        <div class="sub-head"><h3>Duruşmalar</h3><button class="btn mini" id="addH">+ Duruşma</button></div>
+        <div id="hears">${(edit.hearings || []).map(hearingRow).join('')}</div>
+        <div class="sub-head"><h3>Süreler</h3><button class="btn mini" id="addD">+ Süre</button></div>
+        <div id="deads">${(edit.deadlines || []).map(deadRow).join('')}</div>
+      </div>
+      <label>Not<textarea id="f7" rows="2">${esc(edit.notes)}</textarea></label>
+      ${baseFields(edit)}`, 'Kaydet'));
+    document.getElementById('modalBox').addEventListener('click', (e) => {
+      const hd = e.target.closest('[data-hdel]');
+      if (hd) { edit.hearings = edit.hearings.filter((h) => h.id !== hd.dataset.hdel); renderCase(); }
+      const dd = e.target.closest('[data-ddel]');
+      if (dd) { edit.deadlines = edit.deadlines.filter((d) => d.id !== dd.dataset.ddel); renderCase(); }
+    });
+    document.getElementById('addH').addEventListener('click', () => {
+      const lab = prompt('Duruşma etiketi (ör: 1. Duruşma)');
+      const when = prompt('Tarih ve saat (GG.AA.YYYY SS:DD)', '');
+      if (lab && when) {
+        const d = parseTR(when);
+        if (d) { edit.hearings.push({ id: uid(), label: lab, date: toInput(d), note: '' }); renderCase(); }
+        else toast('Hata', 'Tarih formatı hatalı: GG.AA.YYYY SS:DD', 'warn');
+      }
+    });
+    document.getElementById('addD').addEventListener('click', () => {
+      const lab = prompt('Süre etiketi (ör: İstinaf başvurusu)');
+      const when = prompt('Son tarih (GG.AA.YYYY SS:DD)', '');
+      if (lab && when) {
+        const d = parseTR(when);
+        if (d) { edit.deadlines.push({ id: uid(), label: lab, due: toInput(d), note: '' }); renderCase(); }
+        else toast('Hata', 'Tarih formatı hatalı', 'warn');
+      }
+    });
+    setChips(document.querySelector('#modalBox .chips'), 'notifyTimes', edit);
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      const name = document.getElementById('f1').value.trim();
+      if (!name) return toast('Uyarı', 'Dava adı zorunlu', 'warn');
+      edit.caseName = name; edit.caseNo = document.getElementById('f2').value.trim();
+      edit.court = document.getElementById('f3').value.trim();
+      edit.caseType = document.getElementById('f4').value; edit.state = document.getElementById('f5').value;
+      edit.party = document.getElementById('f6').value.trim(); edit.notes = document.getElementById('f7').value.trim();
+      if (isNew) db.cases.push(edit); else { const i = db.cases.findIndex((x) => x.id === edit.id); if (i >= 0) db.cases[i] = edit; }
+      save(); closeModal(); render(currentTab);
+    });
+  };
+  renderCase();
+}
+const FILE_TYPES = ['Dilekçe', 'Delil / Ek', 'Bilirkişi Raporu', 'Karar', 'Tebliğat', 'Sözleşme', 'Diğer'];
+function openFile(item, isNew) {
+  const edit = item || JSON.parse(JSON.stringify({ id: uid(), type: 'file', fileName: '', filePath: '', fileType: 'Dilekçe', caseId: '', due: '', state: 'aktif', notes: '', notifyTimes: [] }));
+  const caseOpts = db.cases.map((c) => `<option value="${c.id}" ${edit.caseId === c.id ? 'selected' : ''}>${esc(c.caseNo || c.caseName || 'Dava')}</option>`).join('');
+  const html = modalHTML(isNew ? 'Yeni Dosya' : 'Dosya Düzenle', `
+    <label>Dosya adı *<input id="f1" type="text" value="${esc(edit.fileName)}" required></label>
+    <label>Yol / konum<input id="f2" type="text" value="${esc(edit.filePath)}" placeholder="/data/data/com.termux/files/..."></label>
+    <div class="r2"><label>İlgili dava<select id="f3"><option value="">— seç —</option>${caseOpts}</select></label>
+    <label>Tür<select id="f4">${FILE_TYPES.map((s) => `<option ${edit.fileType === s ? 'selected' : ''}>${s}</option>`).join('')}</select></label></div>
+    <label>Son tarih<input id="f5" type="datetime-local" value="${esc(edit.due)}"></label>
+    <label>Durum<select id="f6">${['aktif','tamamlandı'].map((s) => `<option ${edit.state === s ? 'selected' : ''}>${s}</option>`).join('')}</select></label>
+    <label>Not<textarea id="f7" rows="2">${esc(edit.notes)}</textarea></label>
+    ${baseFields(edit)}`, 'Kaydet');
+  openModal(html);
+  setChips(document.querySelector('#modalBox .chips'), 'notifyTimes', edit);
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    const name = document.getElementById('f1').value.trim();
+    if (!name) return toast('Uyarı', 'Dosya adı zorunlu', 'warn');
+    edit.fileName = name; edit.filePath = document.getElementById('f2').value.trim();
+    edit.caseId = document.getElementById('f3').value; edit.fileType = document.getElementById('f4').value;
+    edit.due = document.getElementById('f5').value; edit.state = document.getElementById('f6').value;
+    edit.notes = document.getElementById('f7').value.trim();
+    if (isNew) db.files.push(edit); else { const i = db.files.findIndex((x) => x.id === edit.id); if (i >= 0) db.files[i] = edit; }
+    save(); closeModal(); render(currentTab);
+  });
+}
+function toInput(d) {
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function parseTR(s) {
+  const m = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})[ T](\d{1,2})[.:](\d{2})$/);
+  if (!m) return null;
+  const d = new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5]);
+  return isNaN(d) ? null : d;
+}
+
+/* ---------- Actions ---------- */
+function openEdit(type, id) {
+  if (type === 'task') { const i = db.tasks.find((x) => x.id === id); if (i) openTask(i, false); }
+  else if (type === 'case') { const i = db.cases.find((x) => x.id === id); if (i) openCase(i, false); }
+  else if (type === 'file') { const i = db.files.find((x) => x.id === id); if (i) openFile(i, false); }
+}
+function toggleDone(type, id) {
+  const arr = type === 'task' ? db.tasks : type === 'case' ? db.cases : db.files;
+  const i = arr.find((x) => x.id === id);
+  if (!i) return;
+  const done = i.state === 'tamamlandı' || i.state === 'sonuçlandı';
+  i.state = done ? (type === 'case' ? 'derdest' : 'aktif') : (type === 'case' ? 'sonuçlandı' : 'tamamlandı');
+  save(); render(currentTab);
+}
+function removeItem(type, id) {
+  if (!confirm('Bu kayıt silinsin mi?')) return;
+  const arr = type === 'task' ? db.tasks : type === 'case' ? db.cases : db.files;
+  const idx = arr.findIndex((x) => x.id === id);
+  if (idx >= 0) arr.splice(idx, 1);
+  save(); render(currentTab);
+}
+
+$list.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-act]');
+  const card = e.target.closest('.card');
+  if (!btn || !card) return;
+  const id = card.dataset.id;
+  const kind = cellType(card);
+  if (btn.dataset.act === 'edit') openEdit(kind, id);
+  else if (btn.dataset.act === 'done') toggleDone(kind, id);
+  else if (btn.dataset.act === 'del') removeItem(kind, id);
+});
+function cellType(card) {
+  const t = card.querySelector('.tlabel').textContent;
+  return t === 'GÖREV' ? 'task' : t === 'DAVA' ? 'case' : 'file';
+}
+
+/* ---------- Settings UI ---------- */
+function renderChipsDefault() {
+  const el = document.getElementById('setNotifTimes');
+  el.innerHTML = NOTIF_OPTS.map((o) => `<label class="chip ${db.settings.notifyTimes.includes(o.m) ? 'on' : ''}"><input type="checkbox" value="${o.m}" ${db.settings.notifyTimes.includes(o.m) ? 'checked' : ''}>${o.label}</label>`).join('');
+  el.addEventListener('change', () => {
+    db.settings.notifyTimes = [...el.querySelectorAll('input:checked')].map((c) => +c.value);
+    save();
+  });
+}
+function ensureNotif() {
+  const btn = document.getElementById('notifBtn');
+  if (!('Notification' in window)) { btn.textContent = 'Bildirim yok'; return; }
+  if (Notification.permission === 'granted') { btn.textContent = 'Bildirimler: Açık'; return; }
+  if (Notification.permission === 'denied') { btn.textContent = 'Bildirimler: Engellendi'; return; }
+  Notification.requestPermission().then((p) => {
+    btn.textContent = p === 'granted' ? 'Bildirimler: Açık' : p === 'denied' ? 'Bildirimler: Engellendi' : 'Bildirimler: ?';
+    if (p === 'granted' && db.settings.notifyEnabled) checkReminders();
+  });
+}
+
+/* ---------- Toast + Log ---------- */
+function toast(t, b, cls) {
+  const el = document.createElement('div');
+  el.className = 'toast ' + (cls || 'info');
+  el.innerHTML = `<b>${esc(t)}</b>${b ? '<span>' + esc(b) + '</span>' : ''}`;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(() => el.classList.add('out'), 4500);
+  setTimeout(() => el.remove(), 5000);
+}
+function addLog(t, b) {
+  let logs = [];
+  try { logs = JSON.parse(localStorage.getItem('dava_takip_log') || '[]'); } catch (e) {}
+  logs.unshift({ t, b, at: new Date().toLocaleString('tr-TR').slice(0, 16) });
+  logs = logs.slice(0, 15);
+  localStorage.setItem('dava_takip_log', JSON.stringify(logs));
+  renderLog();
+}
+function renderLog() {
+  let logs = [];
+  try { logs = JSON.parse(localStorage.getItem('dava_takip_log') || '[]'); } catch (e) {}
+  document.getElementById('logList').innerHTML = logs.length ? logs.map((l) =>
+    `<div class="log-item"><span class="lt">${esc(l.at)}</span><b>${esc(l.t)}</b><span>${esc(l.b)}</span></div>`).join('')
+    : '<div class="empty small">Henüz bildirim yok</div>';
+}
+
+/* ---------- Data helpers ---------- */
+function seed() {
+  const cid = uid();
+  db = loadDB();
+  db.cases.push({
+    id: cid, type: 'case', caseNo: '2024/123 E.', caseName: 'Alacak Davası',
+    court: 'İstanbul 1. Asliye Hukuk', caseType: 'Hukuk', party: 'Davacı',
+    state: 'derdest', notes: 'Örnek kayıt — silebilirsin.',
+    hearings: [{ id: uid(), label: '1. Duruşma', date: toInput(new Date(Date.now() + 3 * 86400e3)), note: '' }],
+    deadlines: [{ id: uid(), label: 'Cevap Dilekçesi', due: toInput(new Date(Date.now() + 86400e3)), note: '' }],
+    notifyTimes: [0, 60],
+  });
+  db.tasks.push({
+    id: uid(), type: 'task', name: 'Vekaletname fotokopisi', label: 'Avukatlık',
+    due: toInput(new Date(Date.now() + 86400e3)), state: 'açık', notes: 'Örnek görev', notifyTimes: [60, 10],
+  });
+  db.files.push({
+    id: uid(), type: 'file', fileName: 'dava_dilekcesi.pdf', filePath: '/storage/emulated/0/Download',
+    fileType: 'Dilekçe', caseId: cid, due: '', state: 'aktif', notes: 'Örnek dosya', notifyTimes: [1440],
+  });
+  db.settings.demoSeeded = true;
+  save(); render(currentTab);
+}
+
+/* ---------- Backup ---------- */
+function backup() {
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'dava-takip-yedek-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  toast('Yedek', 'JSON indirildi', 'info');
+}
+function restore(file) {
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      d.settings = Object.assign(defSettings(), d.settings || {});
+      db = d;
+      save();
+      render(currentTab); renderChipsDefault(); updateSetUI();
+      toast('Geri yüklendi', 'Veriler yüklendi', 'ok');
+    } catch (e) {
+      toast('Hata', 'Dosya okunamadı', 'warn');
+    }
+  };
+  r.readAsText(file);
+}
+
+/* ---------- Init ---------- */
+function init() {
+  if (!db.tasks.length && !db.cases.length && !db.files.length && !db.settings.demoSeeded) {
+    seed();
+  }
+  render('all');
+  renderChipsDefault();
+  renderLog();
+  updateSetUI();
+
+  document.getElementById('search').addEventListener('input', () => render(currentTab));
+  document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => render(b.dataset.tab)));
+  document.getElementById('addBtn').addEventListener('click', () => {
+    if (currentTab === 'case') openCase(null, true);
+    else if (currentTab === 'file') openFile(null, true);
+    else openTask(null, true);
+  });
+  document.getElementById('backupBtn').addEventListener('click', backup);
+  document.getElementById('restoreBtn').addEventListener('click', () => document.getElementById('restoreFile').click());
+  document.getElementById('restoreFile').addEventListener('change', (e) => { if (e.target.files[0]) restore(e.target.files[0]); e.target.value = ''; });
+  document.getElementById('sampleBtn').addEventListener('click', seed);
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    if (!confirm('TÜM veriler silinsin mi?')) return;
+    db = { tasks: [], cases: [], files: [], settings: defSettings() };
+    save(); render(currentTab); renderLog();
+  });
+  document.getElementById('setBeep').addEventListener('change', (e) => { db.settings.beep = e.target.checked; save(); });
+  document.getElementById('setTts').addEventListener('change', (e) => { db.settings.tts = e.target.checked; save(); });
+  document.getElementById('setTg').addEventListener('change', (e) => { db.settings.tg.enabled = e.target.checked; save(); });
+  document.getElementById('tgToken').addEventListener('change', (e) => { db.settings.tg.token = e.target.value.trim(); save(); });
+  document.getElementById('tgChat').addEventListener('change', (e) => { db.settings.tg.chat = e.target.value.trim(); save(); });
+  document.getElementById('tgTest').addEventListener('click', async () => {
+    const st = document.getElementById('tgStatus');
+    st.className = 'tg-status';
+    st.textContent = 'gönderiliyor...';
+    const res = await tgSend('✅ Dava Takip Telegram bağlantısı çalışıyor!');
+    st.textContent = res.sent ? '✓ Mesaj gönderildi' : '✗ ' + res.reason;
+    st.className = 'tg-status ' + (res.sent ? 'ok' : 'err');
+    if (res.sent) toast('Telegram', 'Test mesajı gönderildi', 'ok');
+  });
+  document.getElementById('notifBtn').addEventListener('click', ensureNotif);
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker.addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'jump') toast('Hatırlatma', 'Kayıt açıldı', 'info');
+    });
+  }
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    window.deferredPrompt = e;
+    document.getElementById('installBtn').classList.remove('hidden');
+  });
+  document.getElementById('installBtn').addEventListener('click', () => {
+    if (!window.deferredPrompt) return;
+    window.deferredPrompt.prompt();
+  });
+
+  updateNotifUI();
+  checkReminders();
+  setInterval(() => { render(currentTab); checkReminders(); }, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { render(currentTab); checkReminders(); } });
+}
+function updateSetUI() {
+  document.getElementById('setBeep').checked = db.settings.beep;
+  document.getElementById('setTts').checked = db.settings.tts;
+}
+function updateNotifUI() {
+  const btn = document.getElementById('notifBtn');
+  if (!('Notification' in window)) { btn.textContent = 'Bildirim yok'; return; }
+  if (Notification.permission === 'granted') btn.textContent = 'Bildirimler: Açık';
+  else if (Notification.permission === 'denied') btn.textContent = 'Bildirimler: Engellendi';
+  else btn.textContent = 'Bildirim izni iste';
+}
+init();
+</script>
+</body>
+</html>

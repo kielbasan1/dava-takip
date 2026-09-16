@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Dilekçe Üretici</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<div id="printArea"></div>
+<header>
+  <div class="brand">
+    <span class="logo">📝</span>
+    <div>
+      <h1>Dilekçe Üretici</h1>
+      <p class="tag">Şablon · Terminoloji Kontrol · Kayıt</p>
+    </div>
+  </div>
+  <button id="installBtn" class="btn ghost hidden">Kur</button>
+</header>
+
+<nav class="tabs">
+  <button data-tab="new" class="tab active">Yeni Dilekçe</button>
+  <button data-tab="saved" class="tab">Yazılanlar</button>
+</nav>
+
+<div id="pane-new">
+  <div class="card">
+    <label>Dilekçe türü
+      <select id="typeSel">
+        <option value="dava">Dava Dilekçesi</option>
+        <option value="cevap">Cevap Dilekçesi</option>
+        <option value="itiraz">İcra Takibine İtiraz</option>
+        <option value="itirazin_iptali">İtirazın İptali Davası</option>
+        <option value="istinaf">İstinaf Başvurusu</option>
+        <option value="suclama">Suç Duyurusu / Şikayet</option>
+        <option value="genel">Genel Başvuru / Talep</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Bilgiler</h2>
+      <div id="fields"></div>
+      <p style="color:var(--mut);font-size:12px;margin-top:10px">İstemediğiniz alanı boş bırakabilirsiniz. Makbuz ve tarihler otomatik eklenir.</p>
+    </div>
+
+    <div class="card preview-wrap">
+      <div class="preview-label">
+        <b>Dilekçe metni</b>
+        <span style="font-size:11px">Word'e kopyalayıp yazdırabilirsiniz</span>
+      </div>
+      <textarea id="preview" class="code" rows="22" spellcheck="false"></textarea>
+      <div id="checks" class="check-box"></div>
+      <div class="toolbar">
+        <button id="saveBtn" class="btn primary">💾 Kaydet</button>
+        <button id="copyBtn" class="btn">📋 Kopyala</button>
+        <button id="dlBtn" class="btn ghost">⬇ İndir (.txt)</button>
+        <button id="printBtn" class="btn ghost">🖨 Yazdır / PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="pane-saved" class="hidden">
+  <div class="card">
+    <input id="savedSearch" type="search" placeholder="Kayıtlı dilekçelerde ara...">
+    <div id="savedList" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<p style="color:var(--mut);font-size:12px;text-align:center;margin-top:18px">Tüm veriler yalnızca bu cihazda saklanır · Yazdır ile PDF alabilirsiniz</p>
+
+<div id="toast" class="toast-wrap"></div>
+
+<script src="./app.js"></script>
+</body>
+</html>
